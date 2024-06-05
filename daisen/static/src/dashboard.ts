@@ -2,6 +2,17 @@ import * as d3 from "d3";
 import Widget from "./widget";
 import { thresholdFreedmanDiaconis } from "d3";
 
+function throttle(func: (...args: any[]) => void, limit: number) {
+  let inThrottle: boolean;
+  return function(this: any, ...args: any[]) {
+    if (!inThrottle) {
+      func.apply(this, args);
+      inThrottle = true;
+      setTimeout(() => (inThrottle = false), limit);
+    }
+  };
+}
+
 class YAxisOption {
   optionValue: string;
   html: string;
@@ -26,6 +37,8 @@ class Dashboard {
   _endTime: number;
   _widgets: Array<Widget>;
   _yAxisOptions: Array<YAxisOption>;
+  _initialWidth: number;
+  _initialHeight: number;
 
   constructor() {
     this._numWidget = 16;
@@ -41,6 +54,8 @@ class Dashboard {
       { optionValue: "PendingReqOut", html: "Pending Request Out" },
       { optionValue: "-", html: " - " },
     ];
+    this._initialWidth = window.innerWidth;
+    this._initialHeight = window.innerHeight;
   }
 
   setCanvas(
@@ -75,7 +90,7 @@ class Dashboard {
       dropdownCanvas.style.display = isActive ? 'block' : 'none';
     });
   
-    window.addEventListener('resize', () => {
+    window.addEventListener('resize', throttle(() => {
       if (window.innerWidth > 768) {
         dropdownCanvas.classList.remove('active');
         dropdownCanvas.style.display = 'none';
@@ -84,7 +99,7 @@ class Dashboard {
         this._toolBar.style.display = 'none';
       }
       this._resize();
-    });
+    }, 200));
   
     this._addZoomResetButton(this._toolBar);
     this._addFilterUI(this._toolBar);
@@ -95,9 +110,11 @@ class Dashboard {
     this._addPrimarySelector(dropdownCanvas);
     this._addSecondarySelector(dropdownCanvas);
     this._resize();
+
   }
 
   _resize() {
+    this._resetNumRowCol();
     const width = this._widgetWidth();
     const height = this._widgetHeight();
     this._widgets.forEach((w: Widget) => {
@@ -125,13 +142,34 @@ class Dashboard {
       [4, 4],
       [4, 4],
     ];
-
-    this._numRow = rowColTable[this._numWidget][0];
-    this._numCol = rowColTable[this._numWidget][1];
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    if (this._numWidget > 16) {
+      this._numRow = rowColTable[this._numWidget][0];
+      this._numCol = rowColTable[this._numWidget][1];
+    } else {
+      if (width < 768) {
+        this._numCol = 3;
+      } 
+      if (height < 768) {
+        this._numRow = 3;
+      } 
+      if (width < 500 || height < 500) {
+        this._numRow = 2;
+        this._numCol = 2;
+      }
+      if (width < 400 || height < 400) {
+        this._numRow = 1;
+        this._numCol = 1;
+      }
+      if (width >= this._initialWidth && height >= this._initialHeight) {
+        this._numRow = 4;
+        this._numCol = 4;
+      }
+    }
   }
 
   _widgetWidth(): number {
-    this._resetNumRowCol();
     const numGap = this._numCol + 1;
     const marginLeft = 5;
     const gapSpace = numGap * marginLeft;
@@ -141,7 +179,6 @@ class Dashboard {
   }
 
   _widgetHeight(): number {
-    this._resetNumRowCol();
     const numGap = this._numCol + 1;
     const marginTop = 5;
     const gapSpace = numGap * marginTop;
