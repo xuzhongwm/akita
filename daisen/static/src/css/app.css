@@ -24,22 +24,17 @@ body {
   position: relative;
 }
 
-#inner-container {
-  display: flex;
-}
-
 .pagination-container {
   position: fixed;
   bottom: 0;
-  display: flex;
   align-items: center;
   justify-content: space-between;
-  color:#2c7bb6
+  color: #2c7bb6;
+  z-index: 1000;
 }
 
 .page-info {
   margin-left: 10px;
-  margin-bottom: -10px;
 }
 
 .burger-menu {

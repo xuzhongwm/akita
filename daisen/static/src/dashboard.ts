@@ -67,6 +67,8 @@ class Dashboard {
     this._pageBtnContainer = pageBtnContainer;
     this._toolBar = toolBar;
   
+    this._canvas.classList.add('canvas-container');
+    
     const burgerMenu = document.createElement('div');
     burgerMenu.classList.add('burger-menu');
     burgerMenu.innerHTML = `
@@ -100,7 +102,6 @@ class Dashboard {
       }
       this._resize();
     }, 200));
-  
     this._addZoomResetButton(this._toolBar);
     this._addFilterUI(this._toolBar);
     this._addPrimarySelector(this._toolBar);
@@ -117,30 +118,55 @@ class Dashboard {
     this._resetNumRowCol();
     const width = this._widgetWidth();
     const height = this._widgetHeight();
-    console.log(width, height);
     this._widgets.forEach((w: Widget) => {
       w.resize(width, height);
     });
   }
 
   _resetNumRowCol() {
-    const minWidgetWidth = 300;
+    const rowColTable = [
+      [0, 0],
+      [1, 1],
+      [2, 1],
+      [2, 2],
+      [2, 2],
+      [2, 3],
+      [2, 3],
+      [3, 3],
+      [3, 3],
+      [3, 3],
+      [3, 4],
+      [3, 4],
+      [3, 4],
+      [4, 4],
+      [4, 4],
+      [4, 4],
+      [4, 4],
+    ];
     const width = window.innerWidth;
     const height = window.innerHeight;
-    this._numCol = Math.min(4, Math.ceil(width / minWidgetWidth));
-    if (this._numCol < 1) this._numCol = 1; 
-    this._numRow = Math.ceil(this._numWidget / this._numCol);
-    console.log(this._numRow, this._numCol);
+    this._numCol = rowColTable[this._numWidget][0];
+    this._numRow = rowColTable[this._numWidget][1];
+    if (width >= 800) {
+      this._numCol = 4;
+    }
+    if (width < 800 && width >= 500) {
+      this._numCol = 3;
+    }
+    if (width < 500) {
+      this._numCol = 2;
+    }
+    console.log(width, height);
   }
 
   _widgetWidth(): number {
+    this._resetNumRowCol();
     const numGap = this._numCol + 1;
     const marginLeft = 5;
     const gapSpace = numGap * marginLeft;
     const widgetSpace = this._canvas.offsetWidth - gapSpace;
     const width = Math.floor(widgetSpace / this._numCol);
-    // return width;
-    return Math.max(width, 300);
+    return width;
   }
 
   _widgetHeight(): number {
@@ -250,6 +276,7 @@ class Dashboard {
     };
   
     container.appendChild(selectorGroup);
+    this._canvas.classList.add('canvas-container');
   }
   
   _addSecondarySelector(container: HTMLElement) {
@@ -616,6 +643,7 @@ class Dashboard {
       widget.render(true);
     });
   }
+
 }
 
 export default Dashboard;
