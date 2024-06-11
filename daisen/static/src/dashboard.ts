@@ -117,56 +117,20 @@ class Dashboard {
     this._resetNumRowCol();
     const width = this._widgetWidth();
     const height = this._widgetHeight();
+    console.log(width, height);
     this._widgets.forEach((w: Widget) => {
       w.resize(width, height);
     });
   }
 
   _resetNumRowCol() {
-    const rowColTable = [
-      [0, 0],
-      [1, 1],
-      [2, 1],
-      [2, 2],
-      [2, 2],
-      [2, 3],
-      [2, 3],
-      [3, 3],
-      [3, 3],
-      [3, 3],
-      [3, 4],
-      [3, 4],
-      [3, 4],
-      [4, 4],
-      [4, 4],
-      [4, 4],
-      [4, 4],
-    ];
+    const minWidgetWidth = 300;
     const width = window.innerWidth;
     const height = window.innerHeight;
-    if (this._numWidget > 16) {
-      this._numRow = rowColTable[this._numWidget][0];
-      this._numCol = rowColTable[this._numWidget][1];
-    } else {
-      if (width < 768) {
-        this._numCol = 3;
-      } 
-      if (height < 768) {
-        this._numRow = 3;
-      } 
-      if (width < 500 || height < 500) {
-        this._numRow = 2;
-        this._numCol = 2;
-      }
-      if (width < 400 || height < 400) {
-        this._numRow = 1;
-        this._numCol = 1;
-      }
-      if (width >= this._initialWidth && height >= this._initialHeight) {
-        this._numRow = 4;
-        this._numCol = 4;
-      }
-    }
+    this._numCol = Math.min(4, Math.ceil(width / minWidgetWidth));
+    if (this._numCol < 1) this._numCol = 1; 
+    this._numRow = Math.ceil(this._numWidget / this._numCol);
+    console.log(this._numRow, this._numCol);
   }
 
   _widgetWidth(): number {
@@ -175,11 +139,12 @@ class Dashboard {
     const gapSpace = numGap * marginLeft;
     const widgetSpace = this._canvas.offsetWidth - gapSpace;
     const width = Math.floor(widgetSpace / this._numCol);
-    return width;
+    // return width;
+    return Math.max(width, 300);
   }
 
   _widgetHeight(): number {
-    const numGap = this._numCol + 1;
+    const numGap = this._numRow + 1;
     const marginTop = 5;
     const gapSpace = numGap * marginTop;
     const widgetSpace = this._canvas.offsetHeight - gapSpace;
